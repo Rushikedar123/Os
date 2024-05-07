@@ -1,0 +1,295 @@
+12-----------------------------------------------------------------------------------------------------------------------------------------------------
+#include <stdio.h>
+#include <stdlib.h>
+
+#define MAX 100
+
+void scan(int arr[], int head, int direction, int size, int disk_size) {
+    int total_movement = 0;
+    int current_track = head;
+
+    if (direction == 0) { // Moving towards higher tracks
+        // Sort the requests
+        for (int i = 0; i < size - 1; i++) {
+            for (int j = i + 1; j < size; j++) {
+                if (arr[i] > arr[j]) {
+                    int temp = arr[i];
+                    arr[i] = arr[j];
+                    arr[j] = temp;
+                }
+            }
+        }
+
+        // Find the index of the first request greater than the current head position
+        int index;
+        for (index = 0; index < size; index++) {
+            if (arr[index] > head)
+                break;
+        }
+
+        // Scan towards higher tracks
+        printf("Movement: %d", head);
+        for (int i = index; i < size; i++) {
+            printf(" -> %d", arr[i]);
+            total_movement += abs(current_track - arr[i]);
+            current_track = arr[i];
+        }
+        // Scan towards higher tracks
+        for (int i = index - 1; i >= 0; i--) {
+            printf(" -> %d", arr[i]);
+            total_movement += abs(current_track - arr[i]);
+            current_track = arr[i];
+        }
+    } else { // Moving towards lower tracks
+        // Sort the requests
+        for (int i = 0; i < size - 1; i++) {
+            for (int j = i + 1; j < size; j++) {
+                if (arr[i] < arr[j]) {
+                    int temp = arr[i];
+                    arr[i] = arr[j];
+                    arr[j] = temp;
+                }
+            }
+        }
+
+        // Find the index of the first request smaller than the current head position
+        int index;
+        for (index = 0; index < size; index++) {
+            if (arr[index] < head)
+                break;
+        }
+
+        // Scan towards lower tracks
+        printf("Movement: %d", head);
+        for (int i = index; i < size; i++) {
+            printf(" -> %d", arr[i]);
+            total_movement += abs(current_track - arr[i]);
+            current_track = arr[i];
+        }
+        // Scan towards higher tracks
+        for (int i = index - 1; i >= 0; i--) {
+            printf(" -> %d", arr[i]);
+            total_movement += abs(current_track - arr[i]);
+            current_track = arr[i];
+        }
+    }
+
+    printf("\nTotal head movement: %d\n", total_movement);
+}
+
+int main() {
+    int requests[MAX];
+    int head, size, disk_size, direction;
+
+    printf("Enter the number of requests: ");
+    scanf("%d", &size);
+
+    printf("Enter the requests: ");
+    for (int i = 0; i < size; i++) {
+        scanf("%d", &requests[i]);
+    }
+
+    printf("Enter the current head position: ");
+    scanf("%d", &head);
+
+    printf("Enter the disk size: ");
+    scanf("%d", &disk_size);
+
+    printf("Enter the direction (0 for towards higher tracks, 1 for towards lower tracks): ");
+    scanf("%d", &direction);
+
+    scan(requests, head, direction, size, disk_size);
+
+    return 0;
+}
+ 
+ 4------------------------------------------------------------------------------------------------------------------------------------------------------
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/wait.h>
+
+// Function to sort an array (Bubble Sort)
+void bubbleSort(int arr[], int n) {
+    for (int i = 0; i < n - 1; i++) {
+        for (int j = 0; j < n - i - 1; j++) {
+            if (arr[j] > arr[j + 1]) {
+                int temp = arr[j];
+                arr[j] = arr[j + 1];
+                arr[j + 1] = temp;
+            }
+        }
+    }
+}
+
+int main() {
+    int arr[100];
+    int n;
+    
+    // Accepting input array size and elements
+    printf("Enter the size of the array: ");
+    scanf("%d", &n);
+    
+    printf("Enter the elements of the array:\n");
+    for (int i = 0; i < n; i++) {
+        scanf("%d", &arr[i]);
+    }
+
+    // Sorting the array in the parent process
+    bubbleSort(arr, n);
+    printf("Sorted array in parent process: ");
+    for (int i = 0; i < n; i++) {
+        printf("%d ", arr[i]);
+    }
+    printf("\n");
+
+    pid_t pid = fork(); // Creating a child process
+    
+    if (pid == -1) {
+        // Error occurred
+        perror("fork");
+        exit(EXIT_FAILURE);
+    } else if (pid == 0) {
+        // Child process
+        
+        // Sorting the array in the child process
+        bubbleSort(arr, n);
+        printf("Sorted array in child process: ");
+        for (int i = 0; i < n; i++) {
+            printf("%d ", arr[i]);
+        }
+        printf("\n");
+
+        // Exit the child process
+        exit(EXIT_SUCCESS);
+    } else {
+        // Parent process
+        
+        // Wait for the child process to complete
+        wait(NULL);
+        printf("Child process completed.\n");
+        printf("Parent process completed.\n");
+    }
+
+    return 0;
+}
+8---------------------------------------------------------------------------------------------------------------------------------------------------
+main.c
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/wait.h>
+
+// Function to sort an array (Bubble Sort)
+void bubbleSort(int arr[], int n) {
+    for (int i = 0; i < n - 1; i++) {
+        for (int j = 0; j < n - i - 1; j++) {
+            if (arr[j] > arr[j + 1]) {
+                int temp = arr[j];
+                arr[j] = arr[j + 1];
+                arr[j + 1] = temp;
+            }
+        }
+    }
+}
+
+int main() {
+    int arr[100];
+    int n;
+    
+    // Accepting input array size and elements
+    printf("Enter the size of the array: ");
+    scanf("%d", &n);
+    
+    printf("Enter the elements of the array:\n");
+    for (int i = 0; i < n; i++) {
+        scanf("%d", &arr[i]);
+    }
+
+    int pipefd[2]; // Pipe file descriptors
+    if (pipe(pipefd) == -1) {
+        perror("pipe");
+        exit(EXIT_FAILURE);
+    }
+
+    pid_t pid = fork(); // Creating a child process
+    
+    if (pid == -1) {
+        // Error occurred
+        perror("fork");
+        exit(EXIT_FAILURE);
+    } else if (pid == 0) {
+        // Child process
+        
+        // Close the write end of the pipe
+        close(pipefd[1]);
+
+        // Redirect standard input to read from the pipe
+        dup2(pipefd[0], STDIN_FILENO);
+
+        // Close the unused pipe descriptors
+        close(pipefd[0]);
+
+        // Execute the print_reverse program
+        execlp("./print_reverse", "./print_reverse", NULL);
+
+        // exec only returns if an error occurs
+        perror("execlp");
+        exit(EXIT_FAILURE);
+    } else {
+        // Parent process
+        
+        // Close the read end of the pipe
+        close(pipefd[0]);
+
+        // Sorting the array
+        bubbleSort(arr, n);
+        
+        // Write the sorted array to the pipe
+        write(pipefd[1], arr, n * sizeof(int));
+
+        // Close the write end of the pipe
+        close(pipefd[1]);
+
+        // Waiting for the child process to complete
+        wait(NULL);
+    }
+
+    return 0;
+}
+
+print_reverse.c
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+
+int main() {
+    int arr[100];
+    int n = 0;
+
+    // Read integers from standard input
+    while (read(STDIN_FILENO, &arr[n], sizeof(int)) == sizeof(int)) {
+        n++;
+    }
+
+    // Print the sorted array
+    printf("Sorted array: ");
+    for (int i = 0; i < n; i++) {
+        printf("%d ", arr[i]);
+    }
+    printf("\n");
+
+    // Print the array in reverse order
+    printf("Array in reverse order: ");
+    for (int i = n - 1; i >= 0; i--) {
+        printf("%d ", arr[i]);
+    }
+    printf("\n");
+
+    return 0;
+}
+To run:
+    student@student-ThinkCentre-neo-50s-Gen-3:~$ gcc -o main main.c
+    student@student-ThinkCentre-neo-50s-Gen-3:~$ gcc -o print_reverse print_reverse.c
+    student@student-ThinkCentre-neo-50s-Gen-3:~$ ./main
+
