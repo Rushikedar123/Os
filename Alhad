@@ -1,0 +1,48 @@
+#include<stdio.h>
+#define MAX_FRAME 100
+
+int main () {
+     
+     int frames[MAX_FRAME] = {-1} , pages[MAX_FRAME] ,recent[MAX_FRAME] = {0};
+     int num_frames , num_pages , page_faults = 0;
+     
+     printf("enter the number of frames:");
+     scanf("%d" , & num_frames);
+     
+     printf("enter the number of pages:");
+     scanf("%d" , & num_pages);
+     
+     printf("enter the reference sting:");
+     for ( int i = 0 ; i < num_pages; i ++)
+     scanf("%d" , & pages[i]);
+     
+     for ( int i = 0 ; i < num_pages ; i ++){
+         int page_found = 0 ;
+           for  ( int j = 0 ; j < num_frames ; j ++)
+             if (frames[j] == pages[i] ) {
+                 page_found = 1 ;
+                 recent[j] = i + 1;
+                 break;
+                 
+             }
+             
+             if (!page_found){
+                 int min = recent[0] , replace_index = 0 ;
+                 for ( int j = 1 ; j < num_frames ; j ++)
+                 if (recent [j] < min)
+                 min = recent[j] , replace_index = j;
+                 frames[replace_index] = pages[i];
+                 recent[replace_index] = i + 1 ;
+                 page_faults ++ ;
+                 
+             }
+             
+            for ( int j = 0 ; j < num_frames ; j ++)     
+            printf("%d\t" , frames[j]);
+            printf("\n");
+                 
+             }
+             printf("\n print all the page faults %d\n" ,page_faults);
+             return 0 ;
+          
+     }
