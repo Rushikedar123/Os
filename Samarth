@@ -1,0 +1,66 @@
+#include<stdio.h>
+#include<stdlib.h>
+#include<limits.h>
+
+#define MAX_REQUESTS 1000
+
+// Function to calculate absolute difference
+int abs_diff(int a, int b) {
+    return abs(a - b);
+}
+
+// Function to find the next shortest seek time
+int find_next_request(int *requests, int n, int head) {
+    int min_seek = INT_MAX;
+    int min_index = -1;
+
+    for (int i = 0; i < n; i++) {
+        if (requests[i] != -1) {
+            int seek = abs_diff(requests[i], head);
+            if (seek < min_seek) {
+                min_seek = seek;
+                min_index = i;
+            }
+        }
+    }
+
+    return min_index;
+}
+
+// Function to implement SSTF disk scheduling algorithm
+void sstf(int *requests, int n, int head) {
+    int total_seek_time = 0;
+    int current_head = head;
+
+    printf("Seek Sequence: %d ", current_head);
+
+    for (int i = 0; i < n; i++) {
+        int next_index = find_next_request(requests, n, current_head);
+        total_seek_time += abs_diff(requests[next_index], current_head);
+        printf("-> %d ", requests[next_index]);
+        current_head = requests[next_index];
+        requests[next_index] = -1; // Mark request as serviced
+    }
+
+    printf("\nTotal Seek Time: %d\n", total_seek_time);
+}
+
+int main() {
+    int requests[MAX_REQUESTS];
+    int n, head;
+
+    printf("Enter the number of requests: ");
+    scanf("%d", &n);
+
+    printf("Enter the request queue:\n");
+    for (int i = 0; i < n; i++) {
+        scanf("%d", &requests[i]);
+    }
+
+    printf("Enter the initial head position: ");
+    scanf("%d", &head);
+
+    sstf(requests, n, head);
+
+    return 0;
+}
